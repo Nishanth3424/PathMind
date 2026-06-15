@@ -228,11 +228,6 @@
       letter-spacing: 1px; color: var(--text-dim); backdrop-filter: blur(4px);
     }
     .overlay-pill .v { color: var(--cyan); }
-    .overlay-pill.racing-pill {
-      border-color: var(--amber); color: var(--amber);
-      animation: racing-flash 0.6s ease-in-out infinite alternate;
-    }
-    @keyframes racing-flash { from { opacity: 0.7; } to { opacity: 1; } }
 
     .stage-legend {
       position: absolute; bottom: 14px; left: 14px;
@@ -478,9 +473,9 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           Race All AIs
         </button>
-        <button class="btn btn-amber" id="replayBtn" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-          Replay Race
+        <button class="btn btn-amber" id="driveBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          Drive Winner
         </button>
         <button class="btn btn-danger" id="clearBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
@@ -504,7 +499,7 @@
           <div class="overlay-pill">CURSOR <span class="v" id="cursorPos">— · —</span></div>
           <div class="overlay-pill">TERRAIN <span class="v" id="terrainInfo">EMPTY</span></div>
           <div class="overlay-pill">OBSTACLES <span class="v" id="obsCount">0</span></div>
-          <div class="overlay-pill racing-pill" id="racingPill" style="display:none">🏁 RACING</div>
+          <div class="overlay-pill" id="runnerPill" style="display:none">DRIVING <span class="v" id="runnerName">—</span> · <span class="v" id="runnerTerrain">—</span> · <span class="v" id="runnerSpeed">1.0×</span></div>
         </div>
         <div class="stage-legend" id="stageLegend"></div>
       </div>
@@ -539,7 +534,7 @@
       <div class="footer-stats">
         <span>FPS: <span id="fps">—</span></span>
         <span>STATE: <span id="stateEl" style="color:var(--green)">READY</span></span>
-        <span><span style="color:var(--amber)">SPACE</span> race · <span style="color:var(--amber)">C</span> clear</span>
+        <span><span style="color:var(--amber)">SPACE</span> race · <span style="color:var(--amber)">D</span> drive · <span style="color:var(--amber)">C</span> clear</span>
       </div>
     </footer>
   </div>
@@ -554,7 +549,8 @@
       </div>
       <div class="modal-body">
         <h3>What is PathMind?</h3>
-        <p>PathMind is an <strong>AI Model Path Planning Arena</strong> — a terrain-aware pathfinding laboratory where <em>5 different AI models</em> race to navigate a 2D world filled with diverse terrain. Each AI uses a different pathfinding algorithm, just like real AI companies use different architectures. Watch Claude, GPT-4o, Gemini Pro, ChatGPT, and DeepSeek compete on the same map.</p>
+        <p>PathMind is a <strong>terrain-aware pathfinding arena</strong>. Five classic search algorithms — each given the <em>name and personality</em> of a well-known AI model — race to navigate a 2D world full of diverse terrain. After the race, a physical robot <em>drives the winning route</em>, visibly slowing in mud, crawling uphill, and gliding on ice.</p>
+        <p style="color:var(--amber);font-size:11px;border-left:2px solid var(--amber);padding-left:10px;">⚙ <strong style="color:var(--amber)">How it really works (honest note):</strong> The "AI models" are a fun theme — there are <strong style="color:var(--text)">no external API calls and no API keys</strong>. Each racer is a different pathfinding algorithm (A*, Dijkstra, Greedy Best-First, RRT) running 100% offline in your browser. The company names just make the algorithm tradeoffs memorable.</p>
 
         <h3>Terrain System (8 Types)</h3>
         <div class="info-grid">
@@ -568,33 +564,30 @@
           <div class="info-card"><h4>ICE (0.8×)</h4><p>Frozen surface. Slightly faster than normal — useful express lane.</p></div>
         </div>
 
-        <h3>The 5 AI Racers</h3>
+        <h3>The 5 Racers (Algorithm → Persona)</h3>
         <div class="info-grid">
-          <div class="info-card violet"><h4>CLAUDE (Anthropic)</h4><p><em>Weighted A*</em> with octile heuristic — methodical, terrain-aware, guaranteed optimal.</p></div>
-          <div class="info-card green"><h4>GPT-4o (OpenAI)</h4><p><em>A* Euclidean</em> with 1.2× weight — fast, slightly overestimates, trades optimality for speed.</p></div>
-          <div class="info-card"><h4>GEMINI PRO (Google)</h4><p><em>Goal-biased RRT</em> — random sampling creates creative, unexpected paths through complex terrain.</p></div>
-          <div class="info-card"><h4>CHATGPT (OpenAI)</h4><p><em>Dijkstra's Algorithm</em> — no heuristic, explores everything, guaranteed optimal but slowest.</p></div>
-          <div class="info-card amber"><h4>DEEPSEEK</h4><p><em>Greedy Best-First</em> — chases the goal aggressively, fastest compute but often non-optimal.</p></div>
+          <div class="info-card violet"><h4>CLAUDE = Weighted A*</h4><p>Octile heuristic, terrain-aware — methodical and guaranteed to find the lowest-cost path.</p></div>
+          <div class="info-card green"><h4>GPT-4o = A* (Euclidean)</h4><p>1.2× weighted heuristic — fast, slightly overestimates, trades a little optimality for speed.</p></div>
+          <div class="info-card"><h4>GEMINI PRO = RRT</h4><p>Goal-biased Rapidly-exploring Random Tree — random sampling creates creative, unexpected paths.</p></div>
+          <div class="info-card"><h4>CHATGPT = Dijkstra</h4><p>No heuristic — explores in all directions, always optimal but slowest (most nodes expanded).</p></div>
+          <div class="info-card amber"><h4>DEEPSEEK = Greedy Best-First</h4><p>Ignores terrain cost and charges at the goal — fastest compute, but often a costlier route.</p></div>
         </div>
-
-        <h3>v4 — Robot Racing</h3>
-        <p>After path computation, <strong>animated robot sprites</strong> race along each AI's path simultaneously. Robots react to terrain: they <em>slow down</em> on uphill/mud/forest/sand, <em>speed up</em> on downhill/ice, tilt on slopes, wobble on ice, and leave trails on mud and sand. A speed multiplier appears near each robot showing the current terrain cost.</p>
 
         <h3>How To Use</h3>
         <p><strong>1.</strong> Select a terrain type from the palette and paint the grid. Or load a preset.</p>
         <p><strong>2.</strong> Place the <code>Robot</code> and <code>Goal</code> using the tool buttons.</p>
-        <p><strong>3.</strong> Hit <code>Race All AIs</code> — watch 5 different algorithms find 5 different paths, then robots race along them.</p>
-        <p><strong>4.</strong> Check the <em>Leaderboard</em> to see which AI won, and read the <em>Race Analysis</em> to understand why.</p>
-        <p><strong>5.</strong> Use <code>Replay Race</code> to re-watch the robot animation without recomputing paths.</p>
+        <p><strong>3.</strong> Hit <code>Race All AIs</code> — watch 5 algorithms find 5 different paths, then the winning robot auto-drives the route.</p>
+        <p><strong>4.</strong> Hit <code>Drive Winner</code> anytime to replay the physical robot. Watch it <em>climb uphill slowly, sink and crawl through mud, and glide fast on ice</em> — the terrain costs become physical motion.</p>
+        <p><strong>5.</strong> Check the <em>Leaderboard</em> for rankings and read the <em>Race Analysis</em> to understand why each AI chose its route.</p>
 
         <h3>Why This Matters</h3>
         <p>Real-world robotics uses terrain-aware pathfinding in Mars rovers (NASA JPL), warehouse robots (Amazon), and self-driving cars. Different algorithms shine in different environments — A* dominates structured grids, RRT excels in high-dimensional spaces, Dijkstra guarantees optimality. PathMind makes these tradeoffs <em>visible and interactive</em>.</p>
 
         <h3>Keyboard Shortcuts</h3>
-        <p><code>Space</code> — Race · <code>C</code> — Clear · <code>1-4</code> — Tools · <code>R</code> — Replay · <code>I</code> — This dialog · <code>Esc</code> — Close</p>
+        <p><code>Space</code> — Race · <code>D</code> — Drive winner · <code>C</code> — Clear · <code>1-4</code> — Tools · <code>I</code> — This dialog · <code>Esc</code> — Close</p>
 
         <h3>Tech Stack</h3>
-        <p><strong>Zero dependencies.</strong> Pure HTML5 Canvas + vanilla JS. All 5 algorithms, terrain cost engine, robot animation system, rendering, and analysis — from scratch. No build step, no frameworks.</p>
+        <p><strong>Zero dependencies.</strong> Pure HTML5 Canvas + vanilla JS. All 5 algorithms, terrain cost engine, rendering, and analysis — from scratch. No build step, no frameworks.</p>
       </div>
     </div>
   </div>
@@ -606,16 +599,19 @@
     const GRID = 30, CELL = 24;
     const RRT_MAX = 5000, RRT_STEP = 2.2, RRT_BIAS = 0.14;
 
+    // Each terrain has a movement cost (for pathfinding) and a physical
+    // "drive" profile: how the animated robot moves through it (speed
+    // multiplier) and elevation (positive = raised/climbing).
     const T = {
-      empty:    { id: 0, name: 'EMPTY',    cost: 1.0,     pass: true,  color: null,      render: null },
-      wall:     { id: 1, name: 'WALL',     cost: Infinity, pass: false, color: '#ff1744', render: 'wall' },
-      uphill:   { id: 2, name: 'UPHILL',   cost: 3.0,     pass: true,  color: '#2e7d32', render: 'uphill' },
-      downhill: { id: 3, name: 'DOWNHILL', cost: 0.5,     pass: true,  color: '#1565c0', render: 'downhill' },
-      forest:   { id: 4, name: 'FOREST',   cost: 4.0,     pass: true,  color: '#1b5e20', render: 'forest' },
-      mud:      { id: 5, name: 'MUD',      cost: 5.0,     pass: true,  color: '#5d4037', render: 'mud' },
-      water:    { id: 6, name: 'WATER',    cost: Infinity, pass: false, color: '#0277bd', render: 'water' },
-      sand:     { id: 7, name: 'SAND',     cost: 2.0,     pass: true,  color: '#f9a825', render: 'sand' },
-      ice:      { id: 8, name: 'ICE',      cost: 0.8,     pass: true,  color: '#b3e5fc', render: 'ice' },
+      empty:    { id: 0, name: 'EMPTY',    cost: 1.0,     pass: true,  driveSpeed: 1.0,  elev: 0,   tip: 'Flat ground. Robot moves at normal speed.' },
+      wall:     { id: 1, name: 'WALL',     cost: Infinity, pass: false, driveSpeed: 0,    elev: 0,   tip: 'Solid wall. Completely impassable — robots route around it.' },
+      uphill:   { id: 2, name: 'UPHILL',   cost: 3.0,     pass: true,  driveSpeed: 0.4,  elev: 9,   tip: 'Steep incline. Robot climbs slowly (0.4× speed) and rises in elevation.' },
+      downhill: { id: 3, name: 'DOWNHILL', cost: 0.5,     pass: true,  driveSpeed: 1.6,  elev: -7,  tip: 'Descent. Robot rolls down faster (1.6× speed) and drops in elevation.' },
+      forest:   { id: 4, name: 'FOREST',   cost: 4.0,     pass: true,  driveSpeed: 0.45, elev: 2,   tip: 'Dense trees. Robot pushes through slowly (0.45× speed).' },
+      mud:      { id: 5, name: 'MUD',      cost: 5.0,     pass: true,  driveSpeed: 0.3,  elev: -2,  tip: 'Thick mud. Robot bogs down to a crawl (0.3× speed) and sinks slightly.' },
+      water:    { id: 6, name: 'WATER',    cost: Infinity, pass: false, driveSpeed: 0,    elev: 0,   tip: 'Deep water. Impassable — the robot cannot swim, so it goes around.' },
+      sand:     { id: 7, name: 'SAND',     cost: 2.0,     pass: true,  driveSpeed: 0.6,  elev: 0,   tip: 'Loose sand. Wheels slip, slowing the robot to 0.6× speed.' },
+      ice:      { id: 8, name: 'ICE',      cost: 0.8,     pass: true,  driveSpeed: 1.4,  elev: 0,   tip: 'Slick ice. Low friction lets the robot glide at 1.4× speed.' },
     };
     const TERRAIN_BY_ID = Object.values(T);
     function terrainById(id) { return TERRAIN_BY_ID[id] || T.empty; }
@@ -653,19 +649,136 @@
       { name: 'Mixed Extreme',    tag: 'CHAOS',   fn: presetMixedExtreme },
     ];
 
-    // ═══ STATE ═══
     const state = {
       grid: createGrid(), robot: [2, 15], goal: [27, 15],
       tool: 'draw', terrainBrush: 1, robotSize: 1, speed: 6, sensor: 5,
-      hoverCell: null, drawing: false, animating: false, robotsRacing: false,
+      hoverCell: null, drawing: false, animating: false,
       aiEnabled: { claude: true, gpt4o: true, gemini: true, chatgpt: true, deepseek: true },
       results: {}, animProgress: {}, heartbeat: 0,
-      // Robot racing state
-      robots: [],          // active robot sprites
-      robotTrails: [],     // trail particles left behind
-      robotParticles: [],  // celebration / leaf particles
-      raceFinishOrder: [], // order robots finish
+      runner: null,
     };
+
+    // ═══ ROBOT TRAVERSAL (the physical robot that drives a chosen path) ═══
+    // Builds a runner that walks the given path cell-by-cell. Its speed and
+    // vertical offset are driven by the terrain of the cell it is entering,
+    // so it visibly slows in mud, crawls uphill, and glides on ice.
+    function startRunner(model) {
+      const r = state.results[model.id];
+      if (!r || !r.path || r.path.length < 2) { toast('No path to drive', 'red'); return; }
+      state.runner = {
+        id: model.id, name: model.name, color: model.color,
+        path: r.path, idx: 0, segT: 0,
+        x: r.path[0][0], y: r.path[0][1],
+        z: 0, targetZ: 0, tilt: 0,
+        trail: [], particles: [],
+        cellsDone: 0, totalCells: r.path.length - 1,
+        finished: false,
+      };
+      document.getElementById('runnerPill').style.display = '';
+      toast(`Driving ${model.name}'s route — watch it react to terrain`, 'amber');
+    }
+
+    function terrainAt(x, y) {
+      const cx = Math.round(x), cy = Math.round(y);
+      return inBounds(cx, cy) ? terrainById(state.grid[cy][cx]) : T.empty;
+    }
+
+    function updateRunner() {
+      const run = state.runner;
+      if (!run || run.finished) return;
+      // Terrain the robot is currently entering governs its speed/elevation.
+      const next = run.path[Math.min(run.idx + 1, run.path.length - 1)];
+      const t = terrainAt(next[0], next[1]);
+      const baseStep = 0.022 * state.speed * 0.35 + 0.012; // tuned per-frame progress
+      const step = baseStep * (t.driveSpeed > 0 ? t.driveSpeed : 1);
+      run.segT += step;
+      run.targetZ = t.elev;
+      // smooth elevation + tilt toward target
+      run.z += (run.targetZ - run.z) * 0.18;
+      while (run.segT >= 1 && run.idx < run.path.length - 1) {
+        run.segT -= 1; run.idx++; run.cellsDone++;
+      }
+      if (run.idx >= run.path.length - 1) {
+        run.x = run.path[run.path.length - 1][0];
+        run.y = run.path[run.path.length - 1][1];
+        run.finished = true;
+        document.getElementById('runnerPill').style.display = 'none';
+        toast(`${run.name} reached the goal!`, 'amber');
+        return;
+      }
+      const a = run.path[run.idx], b = run.path[run.idx + 1];
+      const px = run.x, py = run.y;
+      run.x = a[0] + (b[0] - a[0]) * run.segT;
+      run.y = a[1] + (b[1] - a[1]) * run.segT;
+      // tilt based on vertical movement direction
+      run.tilt += (((run.targetZ) * -0.02) - run.tilt) * 0.15;
+      // trail
+      run.trail.push([run.x, run.y]);
+      if (run.trail.length > 60) run.trail.shift();
+      // particles: dust/splash depending on terrain difficulty
+      if (Math.random() < 0.4) {
+        run.particles.push({
+          x: run.x * CELL + CELL/2, y: run.y * CELL + CELL/2 + run.z,
+          vx: (Math.random()-0.5) * 1.2, vy: (Math.random()-0.5) * 1.2 - 0.3,
+          life: 1, color: t.id === 5 ? '#5d4037' : t.id === 8 ? '#b3e5fc' : t.id === 2 ? '#4caf50' : run.color,
+        });
+      }
+      run.particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.04; p.life -= 0.04; });
+      run.particles = run.particles.filter(p => p.life > 0);
+      // HUD
+      document.getElementById('runnerName').textContent = run.name;
+      document.getElementById('runnerTerrain').textContent = t.name;
+      document.getElementById('runnerSpeed').textContent = (t.driveSpeed || 1).toFixed(1) + '×';
+    }
+
+    function drawRunner() {
+      const run = state.runner;
+      if (!run) return;
+      // trail
+      if (run.trail.length > 1) {
+        ctx.lineWidth = 4; ctx.strokeStyle = run.color + '55';
+        ctx.shadowColor = run.color; ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.moveTo(run.trail[0][0] * CELL + CELL/2, run.trail[0][1] * CELL + CELL/2);
+        for (let i = 1; i < run.trail.length; i++)
+          ctx.lineTo(run.trail[i][0] * CELL + CELL/2, run.trail[i][1] * CELL + CELL/2);
+        ctx.stroke(); ctx.shadowBlur = 0;
+      }
+      // particles
+      run.particles.forEach(p => {
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 2 * p.life + 0.5, 0, Math.PI*2); ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      const cx = run.x * CELL + CELL/2;
+      const cy = run.y * CELL + CELL/2 + run.z; // elevation offset
+      const r = CELL/2 - 3;
+      // ground shadow (stays on the ground while robot lifts on hills)
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.beginPath();
+      ctx.ellipse(run.x * CELL + CELL/2, run.y * CELL + CELL/2 + 8, r*0.7, r*0.3, 0, 0, Math.PI*2);
+      ctx.fill();
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(run.tilt);
+      // body
+      const grd = ctx.createRadialGradient(-r/3, -r/3, 1, 0, 0, r);
+      grd.addColorStop(0, '#ffffff'); grd.addColorStop(0.5, run.color); grd.addColorStop(1, '#11122a');
+      ctx.fillStyle = grd; ctx.shadowColor = run.color; ctx.shadowBlur = 16;
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+      // direction indicator (faces travel direction)
+      const b = run.path[Math.min(run.idx + 1, run.path.length - 1)];
+      const ang = Math.atan2(b[1] - run.y, b[0] - run.x);
+      ctx.rotate(ang);
+      ctx.fillStyle = '#05060d';
+      ctx.beginPath(); ctx.moveTo(r*0.6, 0); ctx.lineTo(-r*0.1, -r*0.35); ctx.lineTo(-r*0.1, r*0.35); ctx.closePath(); ctx.fill();
+      ctx.restore();
+      // tiny "wheels" tag at robot for the game feel
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(cx, cy, r*0.18, 0, Math.PI*2); ctx.fill();
+    }
 
     function createGrid() { return Array.from({length: GRID}, () => new Array(GRID).fill(0)); }
 
@@ -733,7 +846,7 @@
       const initH = w * hFn(sx, sy, gx, gy);
       open.push(greedy ? initH : initH, [sx, sy]);
 
-      const dirs = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
+      const dirs = [[1,0],[- 1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
       const diagCost = Math.SQRT2;
 
       while (!open.empty()) {
@@ -900,193 +1013,6 @@
       return parts.join(' ');
     }
 
-    // ═══ TERRAIN RENDERING (ENHANCED v4) ═══
-    function drawTerrain(x, y, tid) {
-      const cx = x * CELL, cy = y * CELL;
-      const hb = state.heartbeat;
-
-      if (tid === 1) {
-        // WALL — 3D brick pattern
-        const grd = ctx.createLinearGradient(cx, cy, cx + CELL, cy + CELL);
-        grd.addColorStop(0, '#5a0012'); grd.addColorStop(0.4, '#8b0020'); grd.addColorStop(0.7, '#6a0018'); grd.addColorStop(1, '#3a000a');
-        ctx.fillStyle = grd;
-        ctx.fillRect(cx + 1, cy + 1, CELL - 2, CELL - 2);
-        // Brick cross-hatch lines
-        ctx.strokeStyle = 'rgba(30,0,0,0.6)'; ctx.lineWidth = 1;
-        ctx.beginPath();
-        // Horizontal mortar
-        ctx.moveTo(cx + 1, cy + CELL * 0.33); ctx.lineTo(cx + CELL - 1, cy + CELL * 0.33);
-        ctx.moveTo(cx + 1, cy + CELL * 0.66); ctx.lineTo(cx + CELL - 1, cy + CELL * 0.66);
-        // Vertical mortar — offset pattern
-        const vOff = (y % 2 === 0) ? CELL * 0.5 : 0;
-        ctx.moveTo(cx + vOff + 1, cy + 1); ctx.lineTo(cx + vOff + 1, cy + CELL * 0.33);
-        ctx.moveTo(cx + ((vOff + CELL * 0.5) % CELL) + 1, cy + CELL * 0.33); ctx.lineTo(cx + ((vOff + CELL * 0.5) % CELL) + 1, cy + CELL * 0.66);
-        ctx.moveTo(cx + vOff + 1, cy + CELL * 0.66); ctx.lineTo(cx + vOff + 1, cy + CELL - 1);
-        ctx.stroke();
-        // Highlight edge
-        ctx.strokeStyle = 'rgba(255,100,120,0.15)'; ctx.lineWidth = 1;
-        ctx.strokeRect(cx + 1.5, cy + 1.5, CELL - 3, CELL - 3);
-
-      } else if (tid === 2) {
-        // UPHILL — green gradient with animated chevrons
-        const grd = ctx.createLinearGradient(cx, cy + CELL, cx, cy);
-        grd.addColorStop(0, '#1a3a1a'); grd.addColorStop(0.5, '#2e7d32'); grd.addColorStop(1, '#66bb6a');
-        ctx.fillStyle = grd;
-        ctx.fillRect(cx + 1, cy + 1, CELL - 2, CELL - 2);
-        // Animated chevron arrows pointing UP
-        ctx.strokeStyle = 'rgba(200,255,200,0.5)'; ctx.lineWidth = 1.5;
-        const aOff = (Math.sin(hb * 2 + x * 0.7) * 3);
-        for (let ci = 0; ci < 2; ci++) {
-          const ccy = cy + 7 + ci * 9 + aOff;
-          if (ccy > cy && ccy < cy + CELL - 2) {
-            ctx.beginPath();
-            ctx.moveTo(cx + 5, ccy + 4); ctx.lineTo(cx + CELL / 2, ccy - 2); ctx.lineTo(cx + CELL - 5, ccy + 4);
-            ctx.stroke();
-          }
-        }
-
-      } else if (tid === 3) {
-        // DOWNHILL — blue gradient with animated chevrons pointing DOWN
-        const grd = ctx.createLinearGradient(cx, cy, cx, cy + CELL);
-        grd.addColorStop(0, '#90caf9'); grd.addColorStop(0.5, '#1565c0'); grd.addColorStop(1, '#0d3b6e');
-        ctx.fillStyle = grd;
-        ctx.fillRect(cx + 1, cy + 1, CELL - 2, CELL - 2);
-        ctx.strokeStyle = 'rgba(180,220,255,0.5)'; ctx.lineWidth = 1.5;
-        const aOff = (Math.sin(hb * 2 + x * 0.7) * 3);
-        for (let ci = 0; ci < 2; ci++) {
-          const ccy = cy + 5 + ci * 9 + aOff;
-          if (ccy > cy && ccy < cy + CELL - 4) {
-            ctx.beginPath();
-            ctx.moveTo(cx + 5, ccy); ctx.lineTo(cx + CELL / 2, ccy + 6); ctx.lineTo(cx + CELL - 5, ccy);
-            ctx.stroke();
-          }
-        }
-
-      } else if (tid === 4) {
-        // FOREST — dark green with multiple tree triangles
-        ctx.fillStyle = '#0f3010';
-        ctx.fillRect(cx + 1, cy + 1, CELL - 2, CELL - 2);
-        // Multiple small trees at varied positions
-        const treeSeeds = [
-          { tx: 0.3, ty: 0.6, sz: 0.4 },
-          { tx: 0.7, ty: 0.55, sz: 0.35 },
-          { tx: 0.5, ty: 0.35, sz: 0.3 },
-        ];
-        for (const ts of treeSeeds) {
-          const sway = Math.sin(hb * 1.2 + x * ts.tx * 10 + y * ts.ty * 7) * 0.8;
-          const tpx = cx + CELL * ts.tx + sway;
-          const tpy = cy + CELL * ts.ty;
-          const tsz = CELL * ts.sz;
-          ctx.fillStyle = '#2e7d32';
-          ctx.beginPath();
-          ctx.moveTo(tpx, tpy - tsz * 0.8); ctx.lineTo(tpx + tsz * 0.5, tpy + tsz * 0.3); ctx.lineTo(tpx - tsz * 0.5, tpy + tsz * 0.3);
-          ctx.fill();
-          ctx.fillStyle = '#4caf5090';
-          ctx.beginPath();
-          ctx.moveTo(tpx, tpy - tsz * 0.5); ctx.lineTo(tpx + tsz * 0.3, tpy + tsz * 0.2); ctx.lineTo(tpx - tsz * 0.3, tpy + tsz * 0.2);
-          ctx.fill();
-        }
-        // Trunk dots
-        ctx.fillStyle = '#5d4037';
-        ctx.fillRect(cx + CELL * 0.28, cy + CELL * 0.75, 2, 4);
-        ctx.fillRect(cx + CELL * 0.68, cy + CELL * 0.7, 2, 4);
-
-      } else if (tid === 5) {
-        // MUD — rich brown with animated bubbles
-        const grd = ctx.createRadialGradient(cx + CELL / 2, cy + CELL / 2, 1, cx + CELL / 2, cy + CELL / 2, CELL);
-        grd.addColorStop(0, '#6d4c41'); grd.addColorStop(0.6, '#5d4037'); grd.addColorStop(1, '#3e2723');
-        ctx.fillStyle = grd;
-        ctx.fillRect(cx + 1, cy + 1, CELL - 2, CELL - 2);
-        // Animated bubbles
-        for (let i = 0; i < 3; i++) {
-          const bSeed = (x * 17 + y * 31 + i * 7) % 100;
-          const bx = cx + 4 + (bSeed % (CELL - 8));
-          const phase = hb * 0.8 + bSeed * 0.1;
-          const rise = (Math.sin(phase) * 0.5 + 0.5);
-          const by = cy + CELL - 4 - rise * (CELL - 8);
-          const bSize = 1.5 + Math.sin(phase * 2) * 0.5;
-          const bAlpha = 1 - rise * 0.8;
-          ctx.fillStyle = `rgba(110,80,60,${bAlpha * 0.7})`;
-          ctx.beginPath();
-          ctx.arc(bx, by, bSize, 0, Math.PI * 2);
-          ctx.fill();
-          // highlight
-          ctx.fillStyle = `rgba(180,140,100,${bAlpha * 0.3})`;
-          ctx.beginPath();
-          ctx.arc(bx - 0.5, by - 0.5, bSize * 0.5, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-      } else if (tid === 6) {
-        // WATER — deep blue with multi-layer waves and foam
-        const wave = Math.sin(hb + x * 0.5 + y * 0.3) * 0.12;
-        ctx.fillStyle = `rgba(2,80,160,${0.8 + wave})`;
-        ctx.fillRect(cx + 1, cy + 1, CELL - 2, CELL - 2);
-        // Multiple wave layers
-        for (let wl = 0; wl < 3; wl++) {
-          const wy = cy + 4 + wl * 7 + Math.sin(hb * 1.5 + x * 0.8 + wl * 2) * 2.5;
-          ctx.strokeStyle = `rgba(100,200,255,${0.25 - wl * 0.06})`;
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(cx + 2, wy);
-          ctx.quadraticCurveTo(cx + CELL * 0.35, wy - 3 + wl, cx + CELL * 0.5, wy);
-          ctx.quadraticCurveTo(cx + CELL * 0.65, wy + 3 - wl, cx + CELL - 2, wy);
-          ctx.stroke();
-        }
-        // Foam dots
-        ctx.fillStyle = 'rgba(200,230,255,0.3)';
-        for (let fi = 0; fi < 2; fi++) {
-          const fx = cx + 4 + ((x * 13 + fi * 11) % (CELL - 8));
-          const fy = cy + 3 + ((y * 7 + fi * 5) % (CELL - 6)) + Math.sin(hb + fi) * 1.5;
-          ctx.beginPath(); ctx.arc(fx, fy, 1, 0, Math.PI * 2); ctx.fill();
-        }
-
-      } else if (tid === 7) {
-        // SAND — golden yellow with wind-blown particles
-        const grd = ctx.createLinearGradient(cx, cy, cx + CELL, cy + CELL);
-        grd.addColorStop(0, '#f9a825'); grd.addColorStop(0.5, '#fbc02d'); grd.addColorStop(1, '#f57f17');
-        ctx.fillStyle = grd;
-        ctx.fillRect(cx + 1, cy + 1, CELL - 2, CELL - 2);
-        // Wind-blown particle dots
-        ctx.fillStyle = 'rgba(200,150,50,0.5)';
-        for (let i = 0; i < 6; i++) {
-          const seed = (x * 23 + y * 17 + i * 11) % 100;
-          const px = cx + 2 + ((seed + Math.sin(hb * 0.7 + i * 2) * 3) % (CELL - 4));
-          const py = cy + 2 + ((seed * 0.7 + Math.cos(hb * 0.5 + i) * 2) % (CELL - 4));
-          ctx.beginPath();
-          ctx.arc(px, py, 0.8 + Math.sin(hb + seed) * 0.3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-      } else if (tid === 8) {
-        // ICE — light cyan with sweeping shine and cracks
-        ctx.fillStyle = '#b3e5fc';
-        ctx.fillRect(cx + 1, cy + 1, CELL - 2, CELL - 2);
-        // Ice surface gradient
-        const igrd = ctx.createLinearGradient(cx, cy, cx + CELL, cy + CELL);
-        igrd.addColorStop(0, 'rgba(255,255,255,0.15)'); igrd.addColorStop(0.5, 'rgba(255,255,255,0)'); igrd.addColorStop(1, 'rgba(200,230,255,0.1)');
-        ctx.fillStyle = igrd;
-        ctx.fillRect(cx + 1, cy + 1, CELL - 2, CELL - 2);
-        // Crack patterns
-        ctx.strokeStyle = 'rgba(100,160,200,0.3)'; ctx.lineWidth = 0.5;
-        ctx.beginPath();
-        ctx.moveTo(cx + 3, cy + 5); ctx.lineTo(cx + CELL / 2, cy + CELL / 2);
-        ctx.lineTo(cx + CELL - 5, cy + CELL - 4);
-        ctx.moveTo(cx + CELL / 2, cy + CELL / 2); ctx.lineTo(cx + 4, cy + CELL - 3);
-        ctx.stroke();
-        // Animated reflective shine streak
-        const shinePos = ((hb * 0.6 + x * 0.3 + y * 0.2) % 3) - 0.5;
-        if (shinePos > 0 && shinePos < 1) {
-          const sx2 = cx + CELL * shinePos;
-          ctx.strokeStyle = `rgba(255,255,255,${0.6 * (1 - Math.abs(shinePos - 0.5) * 2)})`;
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(sx2, cy + 2); ctx.lineTo(sx2 + 4, cy + CELL - 2);
-          ctx.stroke();
-        }
-      }
-    }
-
     // ═══ RENDERING ═══
     let lastFrame = performance.now(), frameCount = 0;
     function draw() {
@@ -1151,16 +1077,13 @@
         }
       }
 
-      // Paths per AI (with glowing head)
+      // Paths per AI
       for (const m of AI_MODELS) {
         if (!state.aiEnabled[m.id]) continue;
         const r = state.results[m.id];
         const prog = state.animProgress[m.id + '_path'] || 0;
         if (r && r.path && prog > 0) drawPath(r.path, m.color, prog);
       }
-
-      // Robot trails
-      drawRobotTrails();
 
       // Sensor
       drawSensor(state.robot[0], state.robot[1]);
@@ -1172,19 +1095,92 @@
         ctx.fillRect(hx * CELL, hy * CELL, CELL, CELL);
       }
 
+      // Static start marker (dimmed while a runner is driving)
       drawRobot(state.robot[0], state.robot[1]);
       drawGoal(state.goal[0], state.goal[1]);
 
-      // Robot particles (leaves, celebration)
-      drawRobotParticles();
-
-      // Racing robot sprites
-      if (state.robotsRacing || state.robots.length > 0) {
-        drawRacingRobots();
-      }
+      // Animated robot physically traversing the chosen path
+      if (state.runner) { updateRunner(); drawRunner(); }
 
       state.heartbeat += 0.04;
       requestAnimationFrame(draw);
+    }
+
+    function drawTerrain(x, y, tid) {
+      const cx = x * CELL, cy = y * CELL;
+      const t = terrainById(tid);
+      if (tid === 1) {
+        const grd = ctx.createRadialGradient(cx+CELL/2, cy+CELL/2, 1, cx+CELL/2, cy+CELL/2, CELL);
+        grd.addColorStop(0, '#ff5470'); grd.addColorStop(0.7, '#ff1744'); grd.addColorStop(1, '#7a0017');
+        ctx.fillStyle = grd;
+        ctx.fillRect(cx+1, cy+1, CELL-2, CELL-2);
+        ctx.strokeStyle = 'rgba(255,23,68,0.35)'; ctx.lineWidth = 1;
+        ctx.strokeRect(cx+0.5, cy+0.5, CELL-1, CELL-1);
+      } else if (tid === 2) {
+        const grd = ctx.createLinearGradient(cx, cy+CELL, cx, cy);
+        grd.addColorStop(0, '#1b5e20'); grd.addColorStop(1, '#4caf50');
+        ctx.fillStyle = grd;
+        ctx.fillRect(cx+1, cy+1, CELL-2, CELL-2);
+        ctx.strokeStyle = '#2e7d3280'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx+CELL/2-4, cy+CELL*0.7); ctx.lineTo(cx+CELL/2, cy+CELL*0.3); ctx.lineTo(cx+CELL/2+4, cy+CELL*0.7);
+        ctx.stroke();
+      } else if (tid === 3) {
+        const grd = ctx.createLinearGradient(cx, cy, cx, cy+CELL);
+        grd.addColorStop(0, '#1565c0'); grd.addColorStop(1, '#42a5f5');
+        ctx.fillStyle = grd;
+        ctx.fillRect(cx+1, cy+1, CELL-2, CELL-2);
+        ctx.strokeStyle = '#1565c080'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx+CELL/2-4, cy+CELL*0.3); ctx.lineTo(cx+CELL/2, cy+CELL*0.7); ctx.lineTo(cx+CELL/2+4, cy+CELL*0.3);
+        ctx.stroke();
+      } else if (tid === 4) {
+        ctx.fillStyle = '#1b5e20';
+        ctx.fillRect(cx+1, cy+1, CELL-2, CELL-2);
+        ctx.fillStyle = '#2e7d32';
+        ctx.beginPath();
+        ctx.moveTo(cx+CELL/2, cy+3); ctx.lineTo(cx+CELL/2+5, cy+CELL-4); ctx.lineTo(cx+CELL/2-5, cy+CELL-4);
+        ctx.fill();
+        ctx.fillStyle = '#4caf5080';
+        ctx.beginPath();
+        ctx.moveTo(cx+CELL/2, cy+6); ctx.lineTo(cx+CELL/2+3, cy+CELL-6); ctx.lineTo(cx+CELL/2-3, cy+CELL-6);
+        ctx.fill();
+      } else if (tid === 5) {
+        ctx.fillStyle = '#5d4037';
+        ctx.fillRect(cx+1, cy+1, CELL-2, CELL-2);
+        ctx.fillStyle = '#4e342e';
+        for (let i = 0; i < 4; i++) {
+          const bx = cx + 3 + ((x * 7 + i * 5) % (CELL - 6));
+          const by = cy + 3 + ((y * 11 + i * 3) % (CELL - 6));
+          ctx.fillRect(bx, by, 3, 3);
+        }
+      } else if (tid === 6) {
+        const wave = Math.sin(state.heartbeat + x * 0.5 + y * 0.3) * 0.15;
+        ctx.fillStyle = `rgba(2,119,189,${0.7 + wave})`;
+        ctx.fillRect(cx+1, cy+1, CELL-2, CELL-2);
+        ctx.strokeStyle = 'rgba(100,200,255,0.3)'; ctx.lineWidth = 1;
+        const wy = cy + CELL/2 + Math.sin(state.heartbeat * 2 + x) * 3;
+        ctx.beginPath();
+        ctx.moveTo(cx+2, wy); ctx.quadraticCurveTo(cx+CELL/2, wy-4, cx+CELL-2, wy);
+        ctx.stroke();
+      } else if (tid === 7) {
+        ctx.fillStyle = '#f9a825';
+        ctx.fillRect(cx+1, cy+1, CELL-2, CELL-2);
+        ctx.fillStyle = '#f57f1740';
+        for (let i = 0; i < 5; i++) {
+          ctx.beginPath();
+          ctx.arc(cx + 3 + ((x*13+i*7)%(CELL-6)), cy + 3 + ((y*11+i*5)%(CELL-6)), 1.5, 0, Math.PI*2);
+          ctx.fill();
+        }
+      } else if (tid === 8) {
+        const shine = 0.85 + 0.15 * Math.sin(state.heartbeat + x + y);
+        ctx.fillStyle = `rgba(179,229,252,${shine})`;
+        ctx.fillRect(cx+1, cy+1, CELL-2, CELL-2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx+4, cy+4); ctx.lineTo(cx+8, cy+8);
+        ctx.stroke();
+      }
     }
 
     function drawPath(path, color, progress) {
@@ -1197,21 +1193,11 @@
       for (let i = 1; i < n; i++) ctx.lineTo(path[i][0] * CELL + CELL/2, path[i][1] * CELL + CELL/2);
       ctx.stroke();
       ctx.shadowBlur = 0;
-      // Path dots
       ctx.fillStyle = color;
       for (let i = 0; i < n; i++) {
         ctx.beginPath();
         ctx.arc(path[i][0] * CELL + CELL/2, path[i][1] * CELL + CELL/2, 2, 0, Math.PI * 2);
         ctx.fill();
-      }
-      // Glowing head
-      if (progress < 1 && n < path.length) {
-        const hx = path[n - 1][0] * CELL + CELL / 2;
-        const hy = path[n - 1][1] * CELL + CELL / 2;
-        ctx.shadowColor = color; ctx.shadowBlur = 16;
-        ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(hx, hy, 4, 0, Math.PI * 2); ctx.fill();
-        ctx.shadowBlur = 0;
       }
     }
 
@@ -1251,323 +1237,6 @@
       ctx.strokeStyle = 'rgba(0,229,255,0.2)'; ctx.lineWidth = 1;
       ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
       ctx.setLineDash([]);
-    }
-
-    // ═══ ROBOT RACING SYSTEM ═══
-    function drawMiniRobot(px, py, color, tiltAngle, wobble, scale) {
-      ctx.save();
-      ctx.translate(px, py);
-      ctx.rotate(tiltAngle + wobble);
-      const s = scale || 1;
-      const bw = 10 * s, bh = 12 * s;
-
-      // Body
-      const rr = 2 * s;
-      ctx.fillStyle = color;
-      ctx.shadowColor = color; ctx.shadowBlur = 8;
-      ctx.beginPath();
-      ctx.moveTo(-bw/2 + rr, -bh/2);
-      ctx.lineTo(bw/2 - rr, -bh/2);
-      ctx.quadraticCurveTo(bw/2, -bh/2, bw/2, -bh/2 + rr);
-      ctx.lineTo(bw/2, bh/2 - rr);
-      ctx.quadraticCurveTo(bw/2, bh/2, bw/2 - rr, bh/2);
-      ctx.lineTo(-bw/2 + rr, bh/2);
-      ctx.quadraticCurveTo(-bw/2, bh/2, -bw/2, bh/2 - rr);
-      ctx.lineTo(-bw/2, -bh/2 + rr);
-      ctx.quadraticCurveTo(-bw/2, -bh/2, -bw/2 + rr, -bh/2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      // Darker inner panel
-      ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      ctx.fillRect(-bw/2 + 2*s, -bh/2 + 2*s, bw - 4*s, bh - 4*s);
-
-      // Track wheels (two circles at bottom)
-      ctx.fillStyle = '#222';
-      ctx.beginPath(); ctx.arc(-bw/2 + 1*s, bh/2, 2.5*s, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(bw/2 - 1*s, bh/2, 2.5*s, 0, Math.PI * 2); ctx.fill();
-      // wheel highlight
-      ctx.fillStyle = '#555';
-      ctx.beginPath(); ctx.arc(-bw/2 + 1*s, bh/2, 1.2*s, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(bw/2 - 1*s, bh/2, 1.2*s, 0, Math.PI * 2); ctx.fill();
-
-      // Antenna
-      ctx.strokeStyle = '#888'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(0, -bh/2); ctx.lineTo(0, -bh/2 - 6*s); ctx.stroke();
-      // Antenna tip glow
-      const pulse = 0.5 + 0.5 * Math.sin(state.heartbeat * 3);
-      ctx.fillStyle = color;
-      ctx.shadowColor = color; ctx.shadowBlur = 6 * pulse;
-      ctx.beginPath(); ctx.arc(0, -bh/2 - 6*s, 1.5*s, 0, Math.PI * 2); ctx.fill();
-      ctx.shadowBlur = 0;
-
-      // Eye (single glowing circle)
-      ctx.fillStyle = '#fff';
-      ctx.shadowColor = '#fff'; ctx.shadowBlur = 4;
-      ctx.beginPath(); ctx.arc(0, -1*s, 2.5*s, 0, Math.PI * 2); ctx.fill();
-      ctx.shadowBlur = 0;
-      // Pupil
-      ctx.fillStyle = '#111';
-      ctx.beginPath(); ctx.arc(0, -1*s, 1.2*s, 0, Math.PI * 2); ctx.fill();
-
-      ctx.restore();
-    }
-
-    function drawRobotTrails() {
-      const now = performance.now();
-      // Remove expired trails
-      state.robotTrails = state.robotTrails.filter(t => now - t.time < 3000);
-      for (const t of state.robotTrails) {
-        const age = (now - t.time) / 3000;
-        const alpha = (1 - age) * 0.5;
-        ctx.fillStyle = t.color.replace(')', `,${alpha})`).replace('rgb', 'rgba');
-        ctx.beginPath();
-        ctx.arc(t.x, t.y, t.size * (1 - age * 0.5), 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    function drawRobotParticles() {
-      const now = performance.now();
-      state.robotParticles = state.robotParticles.filter(p => now - p.born < p.life);
-      for (const p of state.robotParticles) {
-        const age = (now - p.born) / p.life;
-        const alpha = (1 - age);
-        const px = p.x + p.vx * age * p.life / 1000;
-        const py = p.y + p.vy * age * p.life / 1000 + (p.gravity ? 20 * age * age : 0);
-        ctx.fillStyle = p.color.replace(')', `,${alpha})`).replace('rgb', 'rgba');
-        ctx.beginPath();
-        if (p.type === 'leaf') {
-          // Tiny leaf shape
-          ctx.save();
-          ctx.translate(px, py);
-          ctx.rotate(age * 5 + p.rotOff);
-          ctx.fillRect(-2, -1, 4, 2);
-          ctx.restore();
-        } else {
-          ctx.arc(px, py, p.size * (1 - age * 0.3), 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-    }
-
-    function drawRacingRobots() {
-      const now = performance.now();
-      for (const rb of state.robots) {
-        if (!rb.active && !rb.finished) continue;
-
-        const px = rb.pixelX;
-        const py = rb.pixelY;
-
-        // Determine terrain at current grid cell
-        const gx = Math.floor(px / CELL);
-        const gy = Math.floor(py / CELL);
-        const tid = (inBounds(gx, gy)) ? state.grid[gy][gx] : 0;
-        const terrain = terrainById(tid);
-        const terrainCost = terrain.pass ? terrain.cost : 1;
-
-        // Tilt based on terrain
-        let tilt = 0;
-        if (tid === 2) tilt = -0.26; // uphill: tilt backward ~15°
-        if (tid === 3) tilt = 0.26;  // downhill: tilt forward ~15°
-
-        // Wobble on ice
-        let wobble = 0;
-        if (tid === 8) wobble = Math.sin(now * 0.015 + rb.wobbleSeed) * 0.15;
-
-        drawMiniRobot(px, py, rb.color, tilt, wobble, 0.9);
-
-        // Speed multiplier text near robot
-        if (rb.active && terrainCost !== 1) {
-          ctx.font = 'bold 8px "JetBrains Mono", monospace';
-          ctx.fillStyle = terrainCost > 1 ? '#ff6666' : '#66ff66';
-          ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 3;
-          ctx.fillText(`${terrainCost}×`, px + 8, py - 8);
-          ctx.shadowBlur = 0;
-        }
-
-        // Finished flag
-        if (rb.finished && !rb.celebrationDone) {
-          rb.celebrationDone = true;
-          // Celebration particle burst
-          for (let i = 0; i < 20; i++) {
-            const angle = (Math.PI * 2 / 20) * i;
-            const speed = 30 + Math.random() * 40;
-            state.robotParticles.push({
-              x: px, y: py,
-              vx: Math.cos(angle) * speed,
-              vy: Math.sin(angle) * speed,
-              color: rb.color.indexOf('#') === 0 ? hexToRgb(rb.color) : rb.color,
-              size: 2 + Math.random() * 2,
-              born: now,
-              life: 800 + Math.random() * 500,
-              gravity: true,
-              type: 'circle',
-              rotOff: 0,
-            });
-          }
-        }
-      }
-    }
-
-    function hexToRgb(hex) {
-      const r = parseInt(hex.slice(1, 3), 16);
-      const g = parseInt(hex.slice(3, 5), 16);
-      const b = parseInt(hex.slice(5, 7), 16);
-      return `rgb(${r},${g},${b})`;
-    }
-
-    // ═══ ROBOT RACE ANIMATION ENGINE ═══
-    function startRobotRace() {
-      state.robots = [];
-      state.robotTrails = [];
-      state.robotParticles = [];
-      state.raceFinishOrder = [];
-      state.robotsRacing = true;
-
-      document.getElementById('racingPill').style.display = '';
-      document.getElementById('stateEl').textContent = 'RACING';
-      document.getElementById('stateEl').style.color = 'var(--amber)';
-
-      // Base pixels-per-second for robots (at cost=1 terrain)
-      const baseSpeed = 60 + state.speed * 15; // pixels per second
-
-      for (const m of AI_MODELS) {
-        if (!state.aiEnabled[m.id]) continue;
-        const r = state.results[m.id];
-        if (!r || !r.path || r.path.length < 2) continue;
-
-        const rb = {
-          id: m.id,
-          color: m.color,
-          path: r.path,
-          pathIndex: 0,           // current segment index
-          segmentProgress: 0,     // 0..1 progress along current segment
-          pixelX: r.path[0][0] * CELL + CELL / 2,
-          pixelY: r.path[0][1] * CELL + CELL / 2,
-          baseSpeed: baseSpeed,
-          active: true,
-          finished: false,
-          celebrationDone: false,
-          wobbleSeed: Math.random() * 100,
-          lastTrailTime: 0,
-          lastLeafTime: 0,
-        };
-        state.robots.push(rb);
-      }
-
-      if (state.robots.length === 0) {
-        state.robotsRacing = false;
-        document.getElementById('racingPill').style.display = 'none';
-        document.getElementById('stateEl').textContent = 'READY';
-        document.getElementById('stateEl').style.color = 'var(--green)';
-        return;
-      }
-
-      let lastTime = performance.now();
-
-      function tickRobots() {
-        const now = performance.now();
-        const dt = Math.min((now - lastTime) / 1000, 0.05); // cap at 50ms to prevent jumps
-        lastTime = now;
-
-        let allDone = true;
-
-        for (const rb of state.robots) {
-          if (!rb.active) continue;
-          allDone = false;
-
-          const path = rb.path;
-          if (rb.pathIndex >= path.length - 1) {
-            rb.active = false;
-            rb.finished = true;
-            state.raceFinishOrder.push(rb.id);
-            continue;
-          }
-
-          // Current target cell
-          const [tx, ty] = path[rb.pathIndex + 1];
-          const targetX = tx * CELL + CELL / 2;
-          const targetY = ty * CELL + CELL / 2;
-
-          // Current cell terrain
-          const curCellX = Math.floor(rb.pixelX / CELL);
-          const curCellY = Math.floor(rb.pixelY / CELL);
-          const tid = (inBounds(curCellX, curCellY)) ? state.grid[curCellY][curCellX] : 0;
-          const terrain = terrainById(tid);
-          const terrainCost = terrain.pass ? terrain.cost : 1;
-
-          // Speed inversely proportional to cost
-          const speed = rb.baseSpeed / terrainCost;
-
-          // Distance to target
-          const dx = targetX - rb.pixelX;
-          const dy = targetY - rb.pixelY;
-          const dist = Math.hypot(dx, dy);
-
-          const move = speed * dt;
-
-          if (move >= dist) {
-            // Arrived at next waypoint
-            rb.pixelX = targetX;
-            rb.pixelY = targetY;
-            rb.pathIndex++;
-          } else {
-            rb.pixelX += (dx / dist) * move;
-            rb.pixelY += (dy / dist) * move;
-          }
-
-          // === Terrain-reactive visual effects ===
-
-          // Mud trail
-          if (tid === 5 && now - rb.lastTrailTime > 80) {
-            rb.lastTrailTime = now;
-            state.robotTrails.push({
-              x: rb.pixelX, y: rb.pixelY + 6,
-              color: 'rgb(93,64,55)', size: 2, time: now,
-            });
-          }
-
-          // Sand trail
-          if (tid === 7 && now - rb.lastTrailTime > 100) {
-            rb.lastTrailTime = now;
-            state.robotTrails.push({
-              x: rb.pixelX + (Math.random() - 0.5) * 4,
-              y: rb.pixelY + 5,
-              color: 'rgb(249,168,37)', size: 1.5, time: now,
-            });
-          }
-
-          // Forest leaves
-          if (tid === 4 && now - rb.lastLeafTime > 150) {
-            rb.lastLeafTime = now;
-            state.robotParticles.push({
-              x: rb.pixelX, y: rb.pixelY,
-              vx: (Math.random() - 0.5) * 30,
-              vy: -15 - Math.random() * 20,
-              color: 'rgb(76,175,80)',
-              size: 2,
-              born: now,
-              life: 1200,
-              gravity: true,
-              type: 'leaf',
-              rotOff: Math.random() * 6,
-            });
-          }
-        }
-
-        if (allDone) {
-          state.robotsRacing = false;
-          document.getElementById('racingPill').style.display = 'none';
-          document.getElementById('stateEl').textContent = 'READY';
-          document.getElementById('stateEl').style.color = 'var(--green)';
-          return;
-        }
-
-        requestAnimationFrame(tickRobots);
-      }
-
-      requestAnimationFrame(tickRobots);
     }
 
     // ═══ INTERACTION ═══
@@ -1890,26 +1559,21 @@
     // ═══ RACE SYSTEM ═══
     function clearResults() {
       state.results = {}; state.animProgress = {};
-      state.robots = []; state.robotTrails = []; state.robotParticles = [];
-      state.robotsRacing = false; state.raceFinishOrder = [];
-      document.getElementById('racingPill').style.display = 'none';
-      document.getElementById('replayBtn').style.display = 'none';
+      state.runner = null;
+      document.getElementById('runnerPill').style.display = 'none';
       document.getElementById('leaderboard').innerHTML = '<div class="lb-empty">Race the AIs to populate the leaderboard</div>';
       document.getElementById('tutor').innerHTML = '<div class="tutor-empty">Race the AI models to see terrain-aware analysis explaining <em>why</em> each AI chose its route and how terrain impacted their strategies.</div>';
     }
 
     function raceAll() {
-      if (state.animating || state.robotsRacing) return;
+      if (state.animating) return;
       document.getElementById('stateEl').textContent = 'COMPUTING';
       document.getElementById('stateEl').style.color = 'var(--amber)';
 
+      state.runner = null;
+      document.getElementById('runnerPill').style.display = 'none';
       setTimeout(() => {
         state.results = {};
-        state.robots = [];
-        state.robotTrails = [];
-        state.robotParticles = [];
-        state.raceFinishOrder = [];
-
         for (const m of AI_MODELS) {
           if (!state.aiEnabled[m.id]) continue;
           state.results[m.id] = m.run(state.grid, state.robot, state.goal, state.robotSize);
@@ -1922,6 +1586,11 @@
         const fail = AI_MODELS.filter(m => state.aiEnabled[m.id] && state.results[m.id] && !state.results[m.id].path);
         if (ok.length) toast(`Race complete · ${ok.length} AIs found paths`);
         fail.forEach(m => toast(`${m.name} failed: ${state.results[m.id].reason}`, 'red'));
+
+        // After the path-reveal animation, automatically drive the winner so
+        // the terrain-reactive robot is front and center.
+        const ranked = ok.map(m => ({ m, r: state.results[m.id] })).sort((a, b) => a.r.cost - b.r.cost);
+        if (ranked.length) setTimeout(() => { if (!state.runner) startRunner(ranked[0].m); }, 1500);
       }, 30);
     }
 
@@ -1974,37 +1643,40 @@
             state.animProgress[m.id + '_path'] = 1;
           }
           state.animating = false;
-
-          // Show replay button
-          const hasAnyPath = AI_MODELS.some(m => state.aiEnabled[m.id] && state.results[m.id] && state.results[m.id].path);
-          if (hasAnyPath) {
-            document.getElementById('replayBtn').style.display = '';
-          }
-
-          // Start robot race after path animation completes
-          setTimeout(() => startRobotRace(), 300);
+          document.getElementById('stateEl').textContent = 'READY';
+          document.getElementById('stateEl').style.color = 'var(--green)';
         }
       }
       tick();
     }
 
-    function replayRace() {
-      if (state.robotsRacing || state.animating) return;
-      const hasAnyPath = AI_MODELS.some(m => state.aiEnabled[m.id] && state.results[m.id] && state.results[m.id].path);
-      if (!hasAnyPath) {
-        toast('No paths to replay — race first!', 'amber');
-        return;
-      }
-      startRobotRace();
-      toast('Replaying robot race');
-    }
-
     // ═══ BUTTONS ═══
     document.getElementById('raceBtn').addEventListener('click', raceAll);
-    document.getElementById('replayBtn').addEventListener('click', replayRace);
+    document.getElementById('driveBtn').addEventListener('click', driveWinner);
     document.getElementById('clearBtn').addEventListener('click', () => {
       state.grid = createGrid(); clearResults(); updateStats(); toast('Grid cleared');
     });
+
+    // Drive the current winner (lowest-cost successful path). If no race has
+    // run yet, run one first, then drive.
+    function driveWinner() {
+      const ranked = AI_MODELS
+        .filter(m => state.aiEnabled[m.id] && state.results[m.id] && state.results[m.id].path)
+        .map(m => ({ m, r: state.results[m.id] }))
+        .sort((a, b) => a.r.cost - b.r.cost);
+      if (!ranked.length) {
+        raceAll();
+        setTimeout(() => {
+          const again = AI_MODELS
+            .filter(m => state.aiEnabled[m.id] && state.results[m.id] && state.results[m.id].path)
+            .map(m => ({ m, r: state.results[m.id] }))
+            .sort((a, b) => a.r.cost - b.r.cost);
+          if (again.length) startRunner(again[0].m);
+        }, 120);
+        return;
+      }
+      startRunner(ranked[0].m);
+    }
 
     // ═══ MODAL ═══
     const infoModal = document.getElementById('infoModal');
@@ -2025,8 +1697,8 @@
     window.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT') return;
       if (e.key === ' ') { e.preventDefault(); raceAll(); }
+      else if (e.key === 'd' || e.key === 'D') driveWinner();
       else if (e.key === 'c' || e.key === 'C') { state.grid = createGrid(); clearResults(); updateStats(); }
-      else if (e.key === 'r' || e.key === 'R') { replayRace(); }
       else if (e.key === 'i' || e.key === 'I') infoModal.classList.toggle('active');
       else if (e.key === 'Escape') infoModal.classList.remove('active');
       else if (e.key === '1') document.querySelector('[data-tool="draw"]').click();
@@ -2053,7 +1725,7 @@
     updateStats();
     requestAnimationFrame(draw);
     console.log('%c PATHMIND v4.0 ', 'background:#00e5ff;color:#0a0b16;font-weight:bold;padding:4px 8px;');
-    console.log('5 AI Models · 8 Terrain Types · Robot Racing · Zero Dependencies');
+    console.log('5 Algorithms (themed as AI models) · 8 Terrain Types · Terrain-reactive robot · Zero Dependencies · No API keys');
   })();
   </script>
 </body>
